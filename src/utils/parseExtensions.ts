@@ -1,4 +1,8 @@
 import * as cheerio from 'cheerio';
+import { connectToDatabase } from './db';
+import ExtensionModel from '@/models/ExtetsionModel';
+import { TExtension } from '@/types/types';
+import axios from 'axios';
 
 const paths = [
   'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
@@ -9,7 +13,11 @@ const paths = [
   'caeecapkhmfakmcoppaimhpbfcgogjhj', // interalex
 ];
 
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+
 export async function parseExtensions() {
+  // DB connection
+  await connectToDatabase();
   try {
     for (const path of paths) {
       const htmlText = await fetch(
@@ -43,13 +51,13 @@ export async function parseExtensions() {
       const name = nameMatch ? nameMatch[1] : null;
 
       // шукаємо таймстамп, який йде після версії
-      let timestamp: number[] | null = null;
+      let lastUpdate: number | null = null;
       if (version) {
         const regex = new RegExp(`"${version}"\\s*,\\s*(\\[[^\\]]+\\])`);
         const matchTime = dataScript.match(regex);
         if (matchTime) {
           try {
-            timestamp = JSON.parse(matchTime[1])?.[0];
+            lastUpdate = JSON.parse(matchTime[1])?.[0];
           } catch (e) {
             console.error('Не вдалося розпарсити масив:', e);
           }
@@ -59,13 +67,91 @@ export async function parseExtensions() {
       const usersRegex = /\["[^"]+\/[^"]+",null,\d+\],1,null,(\d+),/;
       const usersMatch = dataScript.match(usersRegex);
 
-      let users: number | null = null;
+      let usersQty: number | null = null;
       if (usersMatch) {
-        users = parseInt(usersMatch[1], 10);
+        usersQty = parseInt(usersMatch[1], 10);
       }
 
-      console.log({ name, version, timestamp, users });
+      if (!name || !version || !lastUpdate || !usersQty) continue;
+
+      updateExtensionRecords({
+        id,
+        name,
+        version,
+        lastUpdate,
+        usersQty,
+      });
     }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function updateExtensionRecords({
+  id,
+  name,
+  version,
+  lastUpdate,
+  usersQty,
+}: TExtension) {
+  const extension = await ExtensionModel.findOne({ extensionId: id });
+  console.log('extension', extension);
+
+  if (extension) {
+    // якщо версія змінилася
+    if (extension.version !== version) {
+      extension.history.push({
+        version: version,
+        usersQty,
+        date: new Date(lastUpdate * 1000).toISOString(),
+      });
+      extension.version = version;
+      extension.lastUpdate = lastUpdate;
+      extension.usersQty = usersQty;
+      extension.name = name; // оновлюємо ім'я на випадок зміни
+      await extension.save();
+      await sendMessageToTeegram({ name, version, lastUpdate, usersQty, id });
+    } else {
+      extension.usersQty = usersQty;
+      await extension.save();
+    }
+  } else {
+    await ExtensionModel.create({
+      extensionId: id,
+      name,
+      version,
+      lastUpdate,
+      usersQty,
+      history: [
+        { version, usersQty, date: new Date(lastUpdate * 1000).toISOString() },
+      ],
+    });
+    await sendMessageToTeegram({ name, version, lastUpdate, usersQty, id });
+  }
+}
+
+async function sendMessageToTeegram({
+  name,
+  version,
+  lastUpdate,
+  usersQty,
+}: TExtension) {
+  try {
+    const message = `Назва: ${name}\nВерсія: ${version}\nДата останньої зміни: ${new Date(
+      lastUpdate * 1000
+    ).toLocaleString()}\nКількість користувачів: ${usersQty}`;
+    console.log('TELEGRAM_BOT_TOKEN', TELEGRAM_BOT_TOKEN);
+    await axios
+      .post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        chat_id: 915873774,
+        text: message,
+      })
+      .then(response => {
+        console.log('Message sent successfully:', response.data);
+      })
+      .catch(error => {
+        console.error('Error sending message:', error);
+      });
   } catch (error) {
     console.error(error);
   }
