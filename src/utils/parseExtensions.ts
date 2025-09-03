@@ -74,7 +74,7 @@ export async function parseExtensions() {
 
       if (!name || !version || !lastUpdate || !usersQty) continue;
 
-      updateExtensionRecords({
+      await updateExtensionRecords({
         id,
         name,
         version,
