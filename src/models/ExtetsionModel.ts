@@ -7,6 +7,7 @@ const extensionSchema = new Schema(
     version: { type: String, required: true },
     lastUpdate: { type: Number, required: true },
     usersQty: { type: Number, required: true },
+    iconUrl: { type: String, required: true },
     history: [
       {
         version: String,
