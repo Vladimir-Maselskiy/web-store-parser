@@ -50,7 +50,6 @@ export async function parseExtensions() {
       const nameMatch = content.match(/\\"name\\"\s*:\s*\\"([^\\"]+)\\"/);
       const name = nameMatch ? nameMatch[1] : null;
 
-      // шукаємо таймстамп, який йде після версії
       let lastUpdate: number | null = null;
       if (version) {
         const regex = new RegExp(`"${version}"\\s*,\\s*(\\[[^\\]]+\\])`);
@@ -72,7 +71,12 @@ export async function parseExtensions() {
         usersQty = parseInt(usersMatch[1], 10);
       }
 
-      if (!name || !version || !lastUpdate || !usersQty) continue;
+      const iconMatch = content.match(
+        /https:\/\/lh3\.googleusercontent\.com\/[^\s",]+/
+      );
+      const iconUrl = iconMatch ? iconMatch[0] : null;
+
+      if (!name || !version || !lastUpdate || !usersQty || !iconUrl) continue;
 
       await updateExtensionRecords({
         id,
@@ -80,6 +84,7 @@ export async function parseExtensions() {
         version,
         lastUpdate,
         usersQty,
+        iconUrl,
       });
     }
   } catch (error) {
@@ -93,6 +98,7 @@ async function updateExtensionRecords({
   version,
   lastUpdate,
   usersQty,
+  iconUrl,
 }: TExtension) {
   const extension = await ExtensionModel.findOne({ extensionId: id });
   console.log('extension', extension);
@@ -110,7 +116,14 @@ async function updateExtensionRecords({
       extension.usersQty = usersQty;
       extension.name = name; // оновлюємо ім'я на випадок зміни
       await extension.save();
-      await sendMessageToTeegram({ name, version, lastUpdate, usersQty, id });
+      await sendMessageToTeegram({
+        name,
+        version,
+        lastUpdate,
+        usersQty,
+        id,
+        iconUrl,
+      });
     } else {
       extension.usersQty = usersQty;
       await extension.save();
@@ -126,7 +139,14 @@ async function updateExtensionRecords({
         { version, usersQty, date: new Date(lastUpdate * 1000).toISOString() },
       ],
     });
-    await sendMessageToTeegram({ name, version, lastUpdate, usersQty, id });
+    await sendMessageToTeegram({
+      name,
+      version,
+      lastUpdate,
+      usersQty,
+      id,
+      iconUrl,
+    });
   }
 }
 
