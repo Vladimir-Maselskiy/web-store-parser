@@ -79,7 +79,7 @@ export async function parseExtensions() {
       if (!name || !version || !lastUpdate || !usersQty || !iconUrl) continue;
 
       await updateExtensionRecords({
-        id,
+        extensionId: id,
         name,
         version,
         lastUpdate,
@@ -93,7 +93,7 @@ export async function parseExtensions() {
 }
 
 async function updateExtensionRecords({
-  id,
+  extensionId: id,
   name,
   version,
   lastUpdate,
@@ -101,7 +101,6 @@ async function updateExtensionRecords({
   iconUrl,
 }: TExtension) {
   const extension = await ExtensionModel.findOne({ extensionId: id });
-  console.log('extension', extension);
 
   if (extension) {
     // якщо версія змінилася
@@ -115,13 +114,14 @@ async function updateExtensionRecords({
       extension.lastUpdate = lastUpdate;
       extension.usersQty = usersQty;
       extension.name = name; // оновлюємо ім'я на випадок зміни
+      extension.iconUrl = iconUrl;
       await extension.save();
       await sendMessageToTeegram({
         name,
         version,
         lastUpdate,
         usersQty,
-        id,
+        extensionId: id,
         iconUrl,
       });
     } else {
@@ -135,6 +135,7 @@ async function updateExtensionRecords({
       version,
       lastUpdate,
       usersQty,
+      iconUrl,
       history: [
         { version, usersQty, date: new Date(lastUpdate * 1000).toISOString() },
       ],
@@ -144,7 +145,7 @@ async function updateExtensionRecords({
       version,
       lastUpdate,
       usersQty,
-      id,
+      extensionId: id,
       iconUrl,
     });
   }

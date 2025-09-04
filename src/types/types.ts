@@ -1,5 +1,5 @@
 export type TExtension = {
-  id: string;
+  extensionId: string;
   name: string;
   version: string;
   lastUpdate: number;

@@ -19,13 +19,11 @@ const actions: React.ReactNode[] = [
 
 export const ExtensionCard = ({ extension }: TProps) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const { name, version, usersQty, lastUpdate } = extension;
+  const { name, version, usersQty, lastUpdate, iconUrl } = extension;
   return (
     <Card loading={loading} actions={actions} style={{ minWidth: 300 }}>
       <Card.Meta
-        avatar={
-          <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=1" />
-        }
+        avatar={<Avatar src={iconUrl} />}
         title={name}
         description={
           <>
