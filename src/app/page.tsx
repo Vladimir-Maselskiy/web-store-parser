@@ -21,7 +21,9 @@ export default function Home() {
   return (
     <Flex gap={32} wrap style={{ padding: 32, width: '100%' }}>
       {extensions.map((extension: TExtensionRecord) => {
-        return <ExtensionCard key={extension.id} extension={extension} />;
+        return (
+          <ExtensionCard key={extension.extensionId} extension={extension} />
+        );
       })}
     </Flex>
   );

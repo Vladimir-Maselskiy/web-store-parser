@@ -79,7 +79,7 @@ export async function parseExtensions() {
       if (!name || !version || !lastUpdate || !usersQty || !iconUrl) continue;
 
       await updateExtensionRecords({
-        id,
+        extensionId: id,
         name,
         version,
         lastUpdate,
@@ -93,7 +93,7 @@ export async function parseExtensions() {
 }
 
 async function updateExtensionRecords({
-  id,
+  extensionId: id,
   name,
   version,
   lastUpdate,
@@ -121,7 +121,7 @@ async function updateExtensionRecords({
         version,
         lastUpdate,
         usersQty,
-        id,
+        extensionId: id,
         iconUrl,
       });
     } else {
@@ -145,7 +145,7 @@ async function updateExtensionRecords({
       version,
       lastUpdate,
       usersQty,
-      id,
+      extensionId: id,
       iconUrl,
     });
   }
