@@ -101,7 +101,6 @@ async function updateExtensionRecords({
   iconUrl,
 }: TExtension) {
   const extension = await ExtensionModel.findOne({ extensionId: id });
-  console.log('extension', extension);
 
   if (extension) {
     // якщо версія змінилася
@@ -115,6 +114,7 @@ async function updateExtensionRecords({
       extension.lastUpdate = lastUpdate;
       extension.usersQty = usersQty;
       extension.name = name; // оновлюємо ім'я на випадок зміни
+      extension.iconUrl = iconUrl;
       await extension.save();
       await sendMessageToTeegram({
         name,
@@ -135,6 +135,7 @@ async function updateExtensionRecords({
       version,
       lastUpdate,
       usersQty,
+      iconUrl,
       history: [
         { version, usersQty, date: new Date(lastUpdate * 1000).toISOString() },
       ],
