@@ -1,8 +1,9 @@
 import * as cheerio from 'cheerio';
-import { connectToDatabase } from './db';
 import ExtensionModel from '@/models/ExtetsionModel';
 import { TExtension } from '@/types/types';
 import axios from 'axios';
+import { NextRequest, NextResponse } from 'next/server';
+import { connectToDatabase } from '@/utils/db';
 
 const paths = [
   'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
@@ -15,13 +16,11 @@ const paths = [
   'mapbnmkenejciggnkildgcohibbnhnmm', //eridan
   'nbfdgjmapidikelppdieahmlddjinpjm', //logiline
   'nnfmkaglijgngnephnkgmaldmejandhk', //statvin
-  'fojpkmgahmlajoheocnkebaoodepoekj', //autohelperbot
+  'autohelperbot/fojpkmgahmlajoheocnkebaoodepoekj', //autohelperbot
 ];
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-
-export async function parseExtensions() {
-  // DB connection
+export const POST = async (request: NextRequest) => {
+  console.log('Cron job triggered');
   await connectToDatabase();
   try {
     for (const path of paths) {
@@ -83,104 +82,12 @@ export async function parseExtensions() {
       );
       const iconUrl = iconMatch ? iconMatch[0] : null;
 
+      console.log('name', name);
+
       if (!name || !version || !lastUpdate || !usersQty || !iconUrl) continue;
-
-      await updateExtensionRecords({
-        extensionId: id,
-        name,
-        version,
-        lastUpdate,
-        usersQty,
-        iconUrl,
-      });
     }
   } catch (error) {
     console.error(error);
   }
-}
-
-async function updateExtensionRecords({
-  extensionId: id,
-  name,
-  version,
-  lastUpdate,
-  usersQty,
-  iconUrl,
-}: TExtension) {
-  const extension = await ExtensionModel.findOne({ extensionId: id });
-
-  if (extension) {
-    // якщо версія змінилася
-    if (extension.version !== version) {
-      extension.history.push({
-        version: version,
-        usersQty,
-        date: new Date(lastUpdate * 1000).toISOString(),
-      });
-      extension.version = version;
-      extension.lastUpdate = lastUpdate;
-      extension.usersQty = usersQty;
-      extension.name = name; // оновлюємо ім'я на випадок зміни
-      extension.iconUrl = iconUrl;
-      await extension.save();
-      await sendMessageToTeegram({
-        name,
-        version,
-        lastUpdate,
-        usersQty,
-        extensionId: id,
-        iconUrl,
-      });
-    } else {
-      extension.usersQty = usersQty;
-      await extension.save();
-    }
-  } else {
-    await ExtensionModel.create({
-      extensionId: id,
-      name,
-      version,
-      lastUpdate,
-      usersQty,
-      iconUrl,
-      history: [
-        { version, usersQty, date: new Date(lastUpdate * 1000).toISOString() },
-      ],
-    });
-    await sendMessageToTeegram({
-      name,
-      version,
-      lastUpdate,
-      usersQty,
-      extensionId: id,
-      iconUrl,
-    });
-  }
-}
-
-async function sendMessageToTeegram({
-  name,
-  version,
-  lastUpdate,
-  usersQty,
-}: TExtension) {
-  try {
-    const message = `Назва: ${name}\nВерсія: ${version}\nДата останньої зміни: ${new Date(
-      lastUpdate * 1000
-    ).toLocaleString()}\nКількість користувачів: ${usersQty}`;
-    console.log('TELEGRAM_BOT_TOKEN', TELEGRAM_BOT_TOKEN);
-    await axios
-      .post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        chat_id: 915873774,
-        text: message,
-      })
-      .then(response => {
-        console.log('Message sent successfully:', response.data);
-      })
-      .catch(error => {
-        console.error('Error sending message:', error);
-      });
-  } catch (error) {
-    console.error(error);
-  }
-}
+  return NextResponse.json({ success: true }, { status: 200 });
+};
