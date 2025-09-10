@@ -23,7 +23,7 @@ export const ExtensionCard = ({ extension }: TProps) => {
   return (
     <Card loading={loading} actions={actions} style={{ minWidth: 300 }}>
       <Card.Meta
-        avatar={<Avatar src={iconUrl} />}
+        avatar={<Avatar src={iconUrl} style={{ borderRadius: 4 }} />}
         title={name}
         description={
           <>
