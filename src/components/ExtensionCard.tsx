@@ -1,3 +1,4 @@
+'use client';
 import { TExtensionRecord } from '@/types/types';
 import {
   CommentOutlined,
@@ -5,21 +6,16 @@ import {
   LineChartOutlined,
 } from '@ant-design/icons';
 import { Avatar, Card, Skeleton } from 'antd';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+
+const DEFAULT_ICON_SRC = '/placeholder.png';
 
 type TProps = {
   extension: TExtensionRecord;
-  setIsExtensionChartShowed: Dispatch<SetStateAction<boolean>>;
-  setCurrentExtensionId: Dispatch<SetStateAction<string>>;
+  onShowChart: (extension: TExtensionRecord) => void;
 };
 
-const DEFAULT_ICON_SRC = '/favicon.png';
-
-export const ExtensionCard = ({
-  extension,
-  setIsExtensionChartShowed,
-  setCurrentExtensionId,
-}: TProps) => {
+export const ExtensionCard = ({ extension, onShowChart }: TProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [imageSrc, setImageSrc] = useState<string>(DEFAULT_ICON_SRC);
   const { name, version, usersQty, lastUpdate, iconUrl, extensionId } =
@@ -84,18 +80,10 @@ export const ExtensionCard = ({
     };
   }, [iconUrl, extensionId]);
 
-  const showExtenionChart = (extensionId: string) => {
-    setIsExtensionChartShowed(true);
-    setCurrentExtensionId(extensionId);
-    console.log('extensionId', extensionId);
-  };
   const actions: React.ReactNode[] = [
     <EditOutlined key={`${extensionId}-edit`} />,
     <CommentOutlined key={`${extensionId}-comment`} />,
-    <LineChartOutlined
-      key="chart"
-      onClick={() => showExtenionChart(extensionId)}
-    />,
+    <LineChartOutlined key="chart" onClick={() => onShowChart(extension)} />,
   ];
 
   return (
