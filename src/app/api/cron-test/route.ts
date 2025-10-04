@@ -1,12 +1,9 @@
-import * as cheerio from 'cheerio';
-import ExtensionModel from '@/models/ExtetsionModel';
-import { TExtension } from '@/types/types';
-import axios from 'axios';
-import { NextRequest, NextResponse } from 'next/server';
+﻿import * as cheerio from 'cheerio';
+import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/utils/db';
 
 const paths = [
-  'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
+  'Ш§Щ„Ш­Щ€ШЄ-Ш§Щ„ШЈШІШ±Щ‚/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
   'mnccalhaiokngcimjfngngjjggdhibpp', //bidpro
   'ehpiejnmbdjkaplmbafaejdhodalfbie', //auctiongate
   'fdljkckkhebjnbafdhanaakmmcjfkgjd', //mitridat
@@ -19,7 +16,7 @@ const paths = [
   'autohelperbot/fojpkmgahmlajoheocnkebaoodepoekj', //autohelperbot
 ];
 
-export const POST = async (request: NextRequest) => {
+export const POST = async () => {
   console.log('Cron job triggered');
   await connectToDatabase();
   try {
@@ -46,11 +43,11 @@ export const POST = async (request: NextRequest) => {
 
       const content = match[1];
 
-      // шукаємо "version"
+      // С€СѓРєР°С”РјРѕ "version"
       const versionMatch = content.match(/\\"version\\"\s*:\s*\\"([^\\"]+)\\"/);
       const version = versionMatch ? versionMatch[1] : null;
 
-      // шукаємо "name"
+      // С€СѓРєР°С”РјРѕ "name"
       const titleText = $('title').text().trim();
       const name = titleText
         ? titleText.split('-').slice(0, -1).join('-').trim()
@@ -64,7 +61,7 @@ export const POST = async (request: NextRequest) => {
           try {
             lastUpdate = JSON.parse(matchTime[1])?.[0];
           } catch (e) {
-            console.error('Не вдалося розпарсити масив:', e);
+            console.error('РќРµ РІРґР°Р»РѕСЃСЏ СЂРѕР·РїР°СЂСЃРёС‚Рё РјР°СЃРёРІ:', e);
           }
         }
       }
@@ -91,3 +88,6 @@ export const POST = async (request: NextRequest) => {
   }
   return NextResponse.json({ success: true }, { status: 200 });
 };
+
+
+

@@ -36,6 +36,7 @@ const formatDateLabel = (isoDate: string) =>
 const buildLabel = (version: string, isoDate: string) =>
   `${version}|${formatDateLabel(isoDate)}`;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderTick = (props: any) => {
   const { x, y, payload } = props;
   if (!payload?.value) {
@@ -85,9 +86,7 @@ export const ExtensionChart = ({ extension, onClose }: TProps) => {
     const merged = [...historyPoints, currentPoint];
 
     return merged
-      .sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      )
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .reduce<TChartPoint[]>((acc, item) => {
         if (!acc.length) return [item];
         const last = acc[acc.length - 1];
