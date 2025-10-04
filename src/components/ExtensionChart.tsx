@@ -36,8 +36,12 @@ const formatDateLabel = (isoDate: string) =>
 const buildLabel = (version: string, isoDate: string) =>
   `${version}|${formatDateLabel(isoDate)}`;
 
-const renderTick: React.FC<any> = ({ x, y, payload }) => {
-  if (!payload?.value) return null;
+const renderTick = (props: any) => {
+  const { x, y, payload } = props;
+  if (!payload?.value) {
+    return <></>;
+  }
+
   const [version, date] = String(payload.value).split('|');
 
   return (

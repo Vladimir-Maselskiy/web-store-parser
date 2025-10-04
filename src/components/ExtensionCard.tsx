@@ -6,7 +6,7 @@ import {
   LineChartOutlined,
 } from '@ant-design/icons';
 import { Avatar, Card, Skeleton } from 'antd';
-import { useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 
 const DEFAULT_ICON_SRC = '/placeholder.png';
 
@@ -80,9 +80,23 @@ export const ExtensionCard = ({ extension, onShowChart }: TProps) => {
     };
   }, [iconUrl, extensionId]);
 
+  const disabledActionStyle: CSSProperties = {
+    color: '#bfbfbf',
+    cursor: 'not-allowed',
+    pointerEvents: 'none',
+  };
+
   const actions: React.ReactNode[] = [
-    <EditOutlined key={`${extensionId}-edit`} />,
-    <CommentOutlined key={`${extensionId}-comment`} />,
+    (
+      <span key={`${extensionId}-edit`} style={disabledActionStyle}>
+        <EditOutlined />
+      </span>
+    ),
+    (
+      <span key={`${extensionId}-comment`} style={disabledActionStyle}>
+        <CommentOutlined />
+      </span>
+    ),
     <LineChartOutlined key="chart" onClick={() => onShowChart(extension)} />,
   ];
 
