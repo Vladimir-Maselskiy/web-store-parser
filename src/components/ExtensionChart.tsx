@@ -26,9 +26,37 @@ type TChartPoint = {
 
 const { Paragraph } = Typography;
 
-const formatLabel = (version: string, date: string) => {
-  const formattedDate = new Date(date).toLocaleDateString();
-  return `${version} (${formattedDate})`;
+const formatDateLabel = (isoDate: string) =>
+  new Date(isoDate).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+const buildLabel = (version: string, isoDate: string) =>
+  `${version}|${formatDateLabel(isoDate)}`;
+
+const renderTick: React.FC<any> = ({ x, y, payload }) => {
+  if (!payload?.value) return null;
+  const [version, date] = String(payload.value).split('|');
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="#595959"
+      textAnchor="middle"
+      fontSize={12}
+      transform="translate(0, 8)"
+    >
+      <tspan x={x} dy="0">
+        {version}
+      </tspan>
+      <tspan x={x} dy="14">
+        {date}
+      </tspan>
+    </text>
+  );
 };
 
 export const ExtensionChart = ({ extension, onClose }: TProps) => {
@@ -39,15 +67,15 @@ export const ExtensionChart = ({ extension, onClose }: TProps) => {
       version: item.version,
       usersQty: item.usersQty,
       date: item.date,
-      versionLabel: formatLabel(item.version, item.date),
+      versionLabel: buildLabel(item.version, item.date),
     }));
 
-    const currentDate = new Date(extension.lastUpdate * 1000).toISOString();
+    const currentDateIso = new Date(extension.lastUpdate * 1000).toISOString();
     const currentPoint = {
       version: extension.version,
       usersQty: extension.usersQty,
-      date: currentDate,
-      versionLabel: formatLabel(extension.version, currentDate),
+      date: currentDateIso,
+      versionLabel: buildLabel(extension.version, currentDateIso),
     };
 
     const merged = [...historyPoints, currentPoint];
@@ -67,6 +95,11 @@ export const ExtensionChart = ({ extension, onClose }: TProps) => {
       }, []);
   }, [extension]);
 
+  const tooltipLabelFormatter = (value: string) => {
+    const [version, date] = value.split('|');
+    return `${version} - ${date}`;
+  };
+
   return (
     <Modal
       open
@@ -83,20 +116,20 @@ export const ExtensionChart = ({ extension, onClose }: TProps) => {
           <ResponsiveContainer>
             <LineChart
               data={chartData}
-              margin={{ top: 16, right: 24, left: 0, bottom: 24 }}
+              margin={{ top: 16, right: 56, left: 16, bottom: 48 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="versionLabel"
-                tick={{ fontSize: 12 }}
-                height={60}
+                height={80}
                 interval={0}
-                tickMargin={12}
-                angle={chartData.length > 4 ? -20 : 0}
+                tickMargin={16}
+                padding={{ left: 16, right: 32 }}
+                tick={renderTick}
               />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
               <Tooltip
-                labelFormatter={value => value as string}
+                labelFormatter={tooltipLabelFormatter}
                 formatter={(value: number) => [value, 'Users']}
               />
               <Line
