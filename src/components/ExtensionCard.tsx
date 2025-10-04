@@ -4,7 +4,7 @@ import {
   EditOutlined,
   LineChartOutlined,
 } from '@ant-design/icons';
-import { Avatar, Card, Flex, Switch } from 'antd';
+import { Avatar, Card } from 'antd';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 
 type TProps = {
@@ -27,13 +27,15 @@ export const ExtensionCard = ({
     const fetchIcon = async () => {
       try {
         const res = await fetch(iconUrl);
-        if (!res.ok) throw new Error('Bad response');
+        if (res.ok) throw new Error('Bad response');
         const blob = await res.blob();
         if (!blob.type.startsWith('image/')) throw new Error('Not an image');
         const url = URL.createObjectURL(blob);
         setImageSrc(url);
       } catch (err) {
-        console.warn(`Не вдалося завантажити ${iconUrl}, пробую base64...`);
+        console.warn(
+          `Icon request to ${iconUrl} failed, falling back to cached base64.`
+        );
         await fetchBase64();
       }
     };
@@ -41,14 +43,18 @@ export const ExtensionCard = ({
     const fetchBase64 = async () => {
       try {
         const res = await fetch(`/api/extensions/icon?id=${extensionId}`);
+        if (!res.ok) {
+          throw new Error(`Icon endpoint responded with ${res.status}`);
+        }
         const data = await res.json();
         if (data?.base64) {
-          setImageSrc(`data:image/png;base64,${data.base64}`);
+          const type = data.contentType ?? 'image/png';
+          setImageSrc(`data:${type};base64,${data.base64}`);
         } else {
           setImageSrc('/placeholder.png');
         }
       } catch (err) {
-        console.error('Помилка при отриманні base64:', err);
+        console.error('Failed to retrieve icon base64:', err);
         setImageSrc('/placeholder.png');
       }
     };
@@ -72,7 +78,11 @@ export const ExtensionCard = ({
   return (
     <Card loading={loading} actions={actions} style={{ minWidth: 300 }}>
       <Card.Meta
-        avatar={<Avatar src={imageSrc} style={{ borderRadius: 4 }} />}
+        avatar={
+          imageSrc ? (
+            <Avatar src={imageSrc} style={{ borderRadius: 4 }} />
+          ) : null
+        }
         title={name}
         description={
           <>
