@@ -1,11 +1,16 @@
 'use client';
 import { ExtensionCard } from '@/components/ExtensionCard';
+import { ExtensionChart } from '@/components/ExtensionChart';
 import { TExtensionRecord } from '@/types/types';
 import { Flex } from 'antd';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [extensions, setExtensions] = useState([]);
+  const [extensions, setExtensions] = useState<TExtensionRecord[]>([]);
+  const [isExtensionChartShowed, setIsExtensionChartShowed] = useState(false);
+  const [currentExtension, setCurrentExtension] = useState<
+    TExtensionRecord | null
+  >(null);
 
   useEffect(() => {
     fetch('/api/extensions')
@@ -15,16 +20,34 @@ export default function Home() {
       });
   }, []);
 
-  useEffect(() => {
-    console.log('extensions', extensions);
-  }, [extensions]);
+  const handleShowChart = (extension: TExtensionRecord) => {
+    setCurrentExtension(extension);
+    setIsExtensionChartShowed(true);
+  };
+
+  const handleCloseChart = () => {
+    setIsExtensionChartShowed(false);
+    setCurrentExtension(null);
+  };
+
   return (
     <Flex gap={32} wrap style={{ padding: 32, width: '100%' }}>
-      {extensions.map((extension: TExtensionRecord) => {
+      {extensions.map(extension => {
         return (
-          <ExtensionCard key={extension.extensionId} extension={extension} />
+          <ExtensionCard
+            key={extension.extensionId}
+            extension={extension}
+            onShowChart={handleShowChart}
+          />
         );
       })}
+      {isExtensionChartShowed && currentExtension && (
+        <ExtensionChart
+          extension={currentExtension}
+          onClose={handleCloseChart}
+        />
+      )}
     </Flex>
   );
 }
+

@@ -3,6 +3,7 @@ import { connectToDatabase } from './db';
 import ExtensionModel from '@/models/ExtetsionModel';
 import { TExtension } from '@/types/types';
 import axios from 'axios';
+import { saveExtensionIcon } from './saveExtensionIcon';
 
 const paths = [
   'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
@@ -123,6 +124,7 @@ async function updateExtensionRecords({
       extension.name = name; // оновлюємо ім'я на випадок зміни
       extension.iconUrl = iconUrl;
       await extension.save();
+      await saveExtensionIcon(id, iconUrl);
       await sendMessageToTeegram({
         name,
         version,
@@ -147,6 +149,7 @@ async function updateExtensionRecords({
         { version, usersQty, date: new Date(lastUpdate * 1000).toISOString() },
       ],
     });
+    await saveExtensionIcon(id, iconUrl);
     await sendMessageToTeegram({
       name,
       version,
