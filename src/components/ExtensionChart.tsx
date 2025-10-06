@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 import { TExtensionRecord } from '@/types/types';
-import { Modal, Typography } from 'antd';
-import React, { useMemo } from 'react';
+import { Avatar, Modal, Typography } from 'antd';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Brush,
   CartesianGrid,
   Line,
   LineChart,
@@ -24,7 +25,21 @@ type TChartPoint = {
   versionLabel: string;
 };
 
+type TickRendererProps = {
+  x: number;
+  y: number;
+  payload: {
+    value: string | number;
+  };
+};
+
+type BrushRange = {
+  startIndex?: number;
+  endIndex?: number;
+};
+
 const { Paragraph } = Typography;
+const DEFAULT_ICON_SRC = '/placeholder.png';
 
 const formatDateLabel = (isoDate: string) =>
   new Date(isoDate).toLocaleDateString(undefined, {
@@ -35,34 +50,6 @@ const formatDateLabel = (isoDate: string) =>
 
 const buildLabel = (version: string, isoDate: string) =>
   `${version}|${formatDateLabel(isoDate)}`;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderTick = (props: any) => {
-  const { x, y, payload } = props;
-  if (!payload?.value) {
-    return <></>;
-  }
-
-  const [version, date] = String(payload.value).split('|');
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="#595959"
-      textAnchor="middle"
-      fontSize={12}
-      transform="translate(0, 8)"
-    >
-      <tspan x={x} dy="0">
-        {version}
-      </tspan>
-      <tspan x={x} dy="14">
-        {date}
-      </tspan>
-    </text>
-  );
-};
 
 export const ExtensionChart = ({ extension, onClose }: TProps) => {
   const chartData: TChartPoint[] = useMemo(() => {
@@ -98,16 +85,174 @@ export const ExtensionChart = ({ extension, onClose }: TProps) => {
       }, []);
   }, [extension]);
 
+  const [iconSrc, setIconSrc] = useState<string>(DEFAULT_ICON_SRC);
+  const [brushRange, setBrushRange] = useState<[number, number] | null>(null);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+    let objectUrl: string | null = null;
+
+    const setLoadedIcon = (src: string) => {
+      if (!isCancelled) {
+        setIconSrc(src);
+      }
+    };
+
+    const fetchBase64 = async () => {
+      try {
+        const res = await fetch(`/api/extensions/icon?id=${extension.extensionId}`);
+        if (!res.ok) throw new Error(`Icon endpoint responded with ${res.status}`);
+        const data = await res.json();
+        if (data?.base64) {
+          const type = data.contentType ?? 'image/png';
+          setLoadedIcon(`data:${type};base64,${data.base64}`);
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to retrieve icon base64 for chart modal:', error);
+      }
+      setLoadedIcon(DEFAULT_ICON_SRC);
+    };
+
+    const fetchIcon = async () => {
+      setLoadedIcon(DEFAULT_ICON_SRC);
+      try {
+        const res = await fetch(extension.iconUrl);
+        if (!res.ok) throw new Error(`Bad response: ${res.status}`);
+        const blob = await res.blob();
+        if (!blob.type.startsWith('image/')) {
+          throw new Error(`Unexpected content type: ${blob.type}`);
+        }
+        objectUrl = URL.createObjectURL(blob);
+        setLoadedIcon(objectUrl);
+      } catch (error) {
+        console.warn(
+          `Icon request to ${extension.iconUrl} failed inside chart modal, falling back to cached base64.`,
+          error
+        );
+        await fetchBase64();
+      }
+    };
+
+    fetchIcon();
+
+    return () => {
+      isCancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [extension.extensionId, extension.iconUrl]);
+
+  useEffect(() => {
+    if (!chartData.length) {
+      setBrushRange(null);
+      return;
+    }
+
+    setBrushRange(prev => {
+      if (!prev) return prev;
+      const maxIndex = chartData.length - 1;
+      const nextStart = Math.max(0, Math.min(prev[0], maxIndex));
+      const nextEnd = Math.max(nextStart, Math.min(prev[1], maxIndex));
+      if (nextStart === prev[0] && nextEnd === prev[1]) {
+        return prev;
+      }
+      return [nextStart, nextEnd];
+    });
+  }, [chartData]);
+
+  const visibleData = useMemo(() => {
+    if (!chartData.length) return [];
+    if (!brushRange) return chartData;
+    const [start, end] = brushRange;
+    const maxIndex = chartData.length - 1;
+    const clampedStart = Math.max(0, Math.min(start, maxIndex));
+    const clampedEnd = Math.max(clampedStart, Math.min(end, maxIndex));
+    return chartData.slice(clampedStart, clampedEnd + 1);
+  }, [chartData, brushRange]);
+
+  const lastVisiblePoint = visibleData[visibleData.length - 1] ?? null;
+
+  const renderLastTick = useCallback(
+    ({ x, y, payload }: TickRendererProps): React.JSX.Element => {
+      if (
+        payload?.value === undefined ||
+        payload?.value === null ||
+        !lastVisiblePoint
+      ) {
+        return <g />;
+      }
+
+      const value = String(payload.value);
+      if (value !== lastVisiblePoint.versionLabel) {
+        return <g />;
+      }
+
+      const [version, date] = value.split('|');
+
+      return (
+        <text
+          x={x}
+          y={y}
+          fill="#595959"
+          textAnchor="middle"
+          fontSize={12}
+          transform="translate(0, 8)"
+        >
+          <tspan x={x} dy="0">
+            {version}
+          </tspan>
+          <tspan x={x} dy="14">
+            {date}
+          </tspan>
+        </text>
+      );
+    },
+    [lastVisiblePoint]
+  );
+
+  const handleBrushChange = useCallback((range: BrushRange | null) => {
+    if (!range || range.startIndex === undefined || range.endIndex === undefined) {
+      setBrushRange(null);
+      return;
+    }
+
+    const nextRange: [number, number] = [
+      Math.max(0, range.startIndex),
+      Math.max(range.startIndex, range.endIndex),
+    ];
+    setBrushRange(nextRange);
+  }, []);
+
   const tooltipLabelFormatter = (value: string) => {
     const [version, date] = value.split('|');
     return `${version} - ${date}`;
   };
 
+  const tickValues = lastVisiblePoint ? [lastVisiblePoint.versionLabel] : undefined;
+
+  const modalTitle = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <Avatar src={iconSrc} size={32} style={{ borderRadius: 4 }} />
+      <span>{extension.name}</span>
+    </div>
+  );
+
   return (
     <Modal
       open
       width={720}
-      title={extension.name}
+      title={modalTitle}
       footer={null}
       onCancel={onClose}
     >
@@ -124,11 +269,13 @@ export const ExtensionChart = ({ extension, onClose }: TProps) => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="versionLabel"
-                height={80}
+                height={60}
                 interval={0}
-                tickMargin={16}
+                tickMargin={12}
                 padding={{ left: 16, right: 32 }}
-                tick={renderTick}
+                tick={renderLastTick}
+                tickLine={false}
+                ticks={tickValues}
               />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
               <Tooltip
@@ -142,6 +289,16 @@ export const ExtensionChart = ({ extension, onClose }: TProps) => {
                 strokeWidth={2}
                 activeDot={{ r: 6 }}
                 dot={{ r: 3 }}
+                data={visibleData}
+              />
+              <Brush
+                dataKey="versionLabel"
+                height={28}
+                travellerWidth={10}
+                startIndex={brushRange?.[0] ?? 0}
+                endIndex={brushRange?.[1] ?? Math.max(chartData.length - 1, 0)}
+                tickFormatter={value => String(value).split('|')[0]}
+                onChange={handleBrushChange}
               />
             </LineChart>
           </ResponsiveContainer>
