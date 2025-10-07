@@ -85,7 +85,9 @@ export async function parseExtensions() {
       );
       const iconUrl = iconMatch ? iconMatch[0] : null;
 
-      if (!name || !version || !lastUpdate || !usersQty || !iconUrl) continue;
+      if (!name || !version || !lastUpdate || !iconUrl) continue;
+
+      usersQty = usersQty ? (usersQty >= 8000000 ? 0 : usersQty) : 0;
 
       await updateExtensionRecords({
         extensionId: id,
