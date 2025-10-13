@@ -18,6 +18,7 @@ const paths = [
   'nnfmkaglijgngnephnkgmaldmejandhk', //statvin
   'fojpkmgahmlajoheocnkebaoodepoekj', //autohelperbot
   'oijclklaeblnkiokkgokednjnhkleffj', //hernandez
+  'ihjlpgmdimggkbogmipdgidnflocabmb', //sluk
 ];
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
