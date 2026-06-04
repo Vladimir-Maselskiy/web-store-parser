@@ -6,22 +6,25 @@ import axios from 'axios';
 import { saveExtensionIcon } from './saveExtensionIcon';
 
 const paths = [
-  'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
-  'mnccalhaiokngcimjfngngjjggdhibpp', //bidpro
   'ehpiejnmbdjkaplmbafaejdhodalfbie', //auctiongate
   'fdljkckkhebjnbafdhanaakmmcjfkgjd', //mitridat
+  'mnccalhaiokngcimjfngngjjggdhibpp', //bidpro
   'ieipllemffmocmcmjfnijlgfecalpcgn', // bexauto
+  'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
   'caeecapkhmfakmcoppaimhpbfcgogjhj', // interalex
+  'oijclklaeblnkiokkgokednjnhkleffj', //hernandez
+  'ckdmhlppeelklealkgefdeghcpbgjgjc', //carexauto
+  'cffbjmjkcdfnjomcbacmmblapkpdjpjn', //gojordan
+  'hlepncelffbopanhnpodikeblaolepfh', //ram_shipping
+  'kpdppojdpodmbgklhmbchbaljdnnmlgk', //alafaq
+  // ниже сторонние расширения
   'idkbonkeidlnjkbfjoammecfmdaibbmh', // caucasus,
   'mapbnmkenejciggnkildgcohibbnhnmm', //eridan
   'nbfdgjmapidikelppdieahmlddjinpjm', //logiline
   'nnfmkaglijgngnephnkgmaldmejandhk', //statvin
   'fojpkmgahmlajoheocnkebaoodepoekj', //autohelperbot
-  'oijclklaeblnkiokkgokednjnhkleffj', //hernandez
   'ihjlpgmdimggkbogmipdgidnflocabmb', //sluk
   'cmcngofoeoahdjalgibdenofegmgllem', //saleswave
-  'ckdmhlppeelklealkgefdeghcpbgjgjc', //carexauto
-  'cffbjmjkcdfnjomcbacmmblapkpdjpjn', //gojordan
 ];
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
