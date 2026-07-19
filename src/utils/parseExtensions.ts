@@ -6,17 +6,18 @@ import axios from 'axios';
 import { saveExtensionIcon } from './saveExtensionIcon';
 
 const paths = [
-  'ehpiejnmbdjkaplmbafaejdhodalfbie', //auctiongate
-  'fdljkckkhebjnbafdhanaakmmcjfkgjd', //mitridat
-  'mnccalhaiokngcimjfngngjjggdhibpp', //bidpro
-  'ieipllemffmocmcmjfnijlgfecalpcgn', // bexauto
-  'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // bluewhale
-  'caeecapkhmfakmcoppaimhpbfcgogjhj', // interalex
-  'oijclklaeblnkiokkgokednjnhkleffj', //hernandez
-  'ckdmhlppeelklealkgefdeghcpbgjgjc', //carexauto
-  'cffbjmjkcdfnjomcbacmmblapkpdjpjn', //gojordan
-  'hlepncelffbopanhnpodikeblaolepfh', //ram_shipping
-  'kpdppojdpodmbgklhmbchbaljdnnmlgk', //alafaq
+  'ehpiejnmbdjkaplmbafaejdhodalfbie', // 0-auctiongate
+  'fdljkckkhebjnbafdhanaakmmcjfkgjd', // 1-mitridat
+  'mnccalhaiokngcimjfngngjjggdhibpp', // 2-bidpro
+  'ieipllemffmocmcmjfnijlgfecalpcgn', // 3-bexauto
+  'الحوت-الأزرق/philabpkooplanbpnnfapdcohlcmmnkj', // 4-bluewhale
+  'caeecapkhmfakmcoppaimhpbfcgogjhj', // 5-interalex
+  'oijclklaeblnkiokkgokednjnhkleffj', // 6-hernandez
+  'ckdmhlppeelklealkgefdeghcpbgjgjc', // 7-carexauto
+  'cffbjmjkcdfnjomcbacmmblapkpdjpjn', // 8-gojordan
+  'enmiifnbfamffpkiaifbjhofhgomhhnp', // 9-BIDAUTO-Live
+  'hlepncelffbopanhnpodikeblaolepfh', // 10-ram_shipping
+  'kpdppojdpodmbgklhmbchbaljdnnmlgk', // 11-alafaq
   // ниже сторонние расширения
   'idkbonkeidlnjkbfjoammecfmdaibbmh', // caucasus,
   'mapbnmkenejciggnkildgcohibbnhnmm', //eridan
