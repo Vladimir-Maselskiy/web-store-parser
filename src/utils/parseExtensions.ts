@@ -18,6 +18,8 @@ const paths = [
   'enmiifnbfamffpkiaifbjhofhgomhhnp', // 9-BIDAUTO-Live
   'hlepncelffbopanhnpodikeblaolepfh', // 10-ram_shipping
   'kpdppojdpodmbgklhmbchbaljdnnmlgk', // 11-alafaq
+  'haihpajajeginjlkodhkmmalmnlnbkji', // 12-Auto&Company
+
   // ниже сторонние расширения
   'idkbonkeidlnjkbfjoammecfmdaibbmh', // caucasus,
   'mapbnmkenejciggnkildgcohibbnhnmm', //eridan
